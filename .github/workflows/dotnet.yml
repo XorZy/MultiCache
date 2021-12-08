@@ -1,0 +1,36 @@
+name: .NET
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install packages
+        run: sudo apt install upx libkrb5-dev
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build AOT
+        run: dotnet publish -c Release -r linux-x64 /p:Version=0-${GITHUB_SHA:0:8}
+      - name: Strip AOT
+        run: strip ./MultiCache/bin/Release/net6.0/linux-x64/publish/MultiCache
+      - name: Compress AOT
+        run: upx ./MultiCache/bin/Release/net6.0/linux-x64/publish/MultiCache
+      - name: Upload AOT
+        uses: actions/upload-artifact@v2
+        with:
+          name: MultiCache-Linux-x64-${{github.sha}}
+          path: ./src/MultiCache/bin/Release/net6.0/linux-x64/publish/MultiCache
