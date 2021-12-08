@@ -76,7 +76,7 @@ dotnet run
 2. Optionally you can let MultiCache know immediately about the packages that are installed on your machine(s). Run the following command on every computer you wish to keep updated with MultiCache
 
 ```sh
-pacman -Q | curl -X POST --data-binary @- http://[ip]:5050/manjaro/api/packages?arch=x86_64
+pacman -Q | curl -X POST --data-binary @- http://[ip]:5050/[repository]/api/packages?arch=x86_64
 ```
 
 ### Installation
