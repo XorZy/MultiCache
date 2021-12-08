@@ -1,5 +1,5 @@
 # MultiCache
-A modern,feature-packed, yet very to use caching server for Pacman.
+A modern, feature-packed, yet very to use caching server for Pacman.
 
 Support for other package managers is planned.
 
