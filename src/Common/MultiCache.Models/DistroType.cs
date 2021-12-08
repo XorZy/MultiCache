@@ -9,7 +9,7 @@ namespace MultiCache.Models
         ManjaroAarch64Stable,
         ManjaroAarch64Testing,
         ManjaroAarch64Unstable,
-        ArchlinuxX64,
-        ArchlinuxArm,
+        ArchLinuxX64,
+        ArchLinuxArm,
     }
 }
