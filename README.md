@@ -18,7 +18,6 @@ Modern Linux distributions have many, many packages. Cloning an entire repositor
 This could be a solution if you have only one computer. However, if you have multiple computers then you may end up having to download a given package multiple times. MultiCache makes the process easier by acting like a local mirror.
 A typical setup would be to run MultiCache on a low-power device like a Raspberry Pi or any other SBC. This way you don't need to let your other power hungry computers running all day and yet can still update them at the time of your choosing, and in a fraction of the time.
 </details>
-<details>
 
 <details><summary>Why not use Squid?</summary>
 
