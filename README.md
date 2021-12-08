@@ -85,5 +85,6 @@ Installation scripts and AUR PKGBUILD will be provided as soon as the app is sta
 
 If you do not want to compile the application yourself, binaries are automatically produced every time this repository is updated.
 Head over to https://github.com/XorZy/MultiCache/actions/workflows/dotnet.yml.
-Chose the latest successful run, scroll down to the bottom of the page, the binaries will be in the Artifacts sessions.
-These binaries use AOT of time compilation instead of the traditional JIT compilation of C#. This should offer better startup times.
+Chose the latest successful run, scroll down to the bottom of the page, the binaries will be in the Artifacts section.
+These binaries use AOT compilation instead of the traditional JIT compilation of C#.
+This should offer faster startup times.
