@@ -1,4 +1,6 @@
 # MultiCache
+![example workflow](https://github.com/XorZy/MultiCache/actions/workflows/dotnet.yml/badge.svg)
+
 A modern, feature-packed, yet very to use caching server for Pacman.
 
 Support for other package managers is planned.
