@@ -39,9 +39,9 @@ namespace PacmanHandler.Network
                   => await GetManjaroMirrorsAsync(httpsOnly, "unstable", true)
                       .ConfigureAwait(false),
                 //ARCH
-                DistroType.ArchlinuxX64
+                DistroType.ArchLinuxX64
                   => await GetArchX64MirrorsAsync(httpsOnly).ConfigureAwait(false),
-                DistroType.ArchlinuxArm
+                DistroType.ArchLinuxArm
                   => await GetArchArmMirrorsAsync(httpsOnly).ConfigureAwait(false),
                 _ => throw new NotSupportedException("Distribution is not supported")
             };

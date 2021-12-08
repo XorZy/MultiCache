@@ -45,7 +45,7 @@ namespace MultiCache.PackageManager.Pacman
         {
             return Config.DistroType switch
             {
-                DistroType.ArchlinuxX64
+                DistroType.ArchLinuxX64
                 or DistroType.ManjaroX64Stable
                 or DistroType.ManjaroX64Testing
                 or DistroType.ManjaroX64Unstable
@@ -56,7 +56,7 @@ namespace MultiCache.PackageManager.Pacman
                 DistroType.ManjaroAarch64Stable
                 or DistroType.ManjaroAarch64Testing
                 or DistroType.ManjaroAarch64Unstable
-                or DistroType.ArchlinuxArm
+                or DistroType.ArchLinuxArm
                   => Factory.BuildBenchmarkResource(
                       new PacmanResourceIdentifier(new Repository("core", "aarch64"), "core.db"),
                       mirror
@@ -148,8 +148,8 @@ namespace MultiCache.PackageManager.Pacman
                 DistroType.ManjaroAarch64Stable,
                 DistroType.ManjaroAarch64Testing,
                 DistroType.ManjaroAarch64Unstable,
-                DistroType.ArchlinuxX64,
-                DistroType.ArchlinuxArm,
+                DistroType.ArchLinuxX64,
+                DistroType.ArchLinuxArm,
                 DistroType.Generic,
             }.ToImmutableArray();
 
