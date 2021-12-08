@@ -66,7 +66,7 @@ dotnet run
 3. On all your other computers run the following command as root to use MultiCache as a mirror.
 
 ```sh
-    echo "Server=http://[ip]:8080/[repository]/\$repo/\$arch" > /etc/pacman.d/mirrorlist
+    echo "Server=http://[ip]:5050/[repository]/\$repo/\$arch" > /etc/pacman.d/mirrorlist
 ```
 
 1. You can then run pacman as you would normally and MultiCache will learn what packages you use automatically.
