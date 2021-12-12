@@ -7,7 +7,7 @@ namespace MultiCache.Config
     using MultiCache.Helpers;
     public class AppConfiguration
     {
-        public AppConfiguration(string cachePath)
+        public AppConfiguration(DirectoryInfo cachePath)
         {
             CachePath = cachePath;
         }
@@ -17,7 +17,7 @@ namespace MultiCache.Config
         public int BufferSize { get; set; } = 4096;
 
         [Description("Where the application should store its data.")]
-        public string CachePath { get; set; }
+        public DirectoryInfo CachePath { get; set; }
 
         [Description("The hostname to which the application should respond to requests.")]
         public string Hostname { get; set; } = "*";

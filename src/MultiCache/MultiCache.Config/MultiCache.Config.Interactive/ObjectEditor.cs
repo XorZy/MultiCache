@@ -65,8 +65,9 @@ namespace MultiCache.Config.Interactive
             {
                 typeof(int),
                 typeof(bool),
+                typeof(DirectoryInfo),
                 typeof(string),
-                typeof(Speed)
+                typeof(Speed),
             };
 
             var settableSettings = objectSettings
@@ -122,6 +123,19 @@ namespace MultiCache.Config.Interactive
                                     (bool)property.GetValue(objectSettings)
                                 )
                             );
+                            break;
+                        }
+                        else if (propertyType == typeof(DirectoryInfo))
+                        {
+                            var directory = new ConsolePathField()
+                            {
+                                Buffer = property.GetValue(objectSettings).ToString(),
+                                AllowEscape = true
+                            }.PromptDirectory();
+                            if (directory is not null)
+                            {
+                                property.SetValue(objectSettings, directory);
+                            }
                             break;
                         }
                         else if (propertyType == typeof(int))

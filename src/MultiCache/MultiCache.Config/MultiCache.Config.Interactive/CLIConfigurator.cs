@@ -166,7 +166,7 @@ namespace MultiCache.Config.Interactive
         }
 
         private static readonly AppConfiguration _referenceAppConfig = new AppConfiguration(
-            "/dummypath"
+            new DirectoryInfo("/dummypath")
         );
         private static readonly RepositoryConfiguration _referenceRepoConfig =
             new RepositoryConfiguration(
@@ -345,29 +345,24 @@ namespace MultiCache.Config.Interactive
 
             AnsiConsole.WriteLine($"Welcome to the {Globals.AppName} configuration utility");
 
-            string storagePath = "/";
+            DirectoryInfo storagePath;
             while (true)
             {
                 AnsiConsole.WriteLine("Where should the application store its data?");
-                storagePath = InputReader.ReadPath(storagePath);
-                DirectoryInfo directoryInfo;
-                try
-                {
-                    directoryInfo = new DirectoryInfo(storagePath);
-                }
-                catch
+                storagePath = InputReader.ReadPath("/", false);
+                if (storagePath is null)
                 {
                     continue;
                 }
 
                 if (
-                    !directoryInfo.Exists
+                    !storagePath.Exists
                     && ConsoleUtils.YesNo("Directory does not exist, create it?")
                 )
                 {
                     try
                     {
-                        directoryInfo.Create();
+                        storagePath.Create();
                     }
                     catch
                     {
@@ -375,7 +370,7 @@ namespace MultiCache.Config.Interactive
                         continue;
                     }
                 }
-                if (!TestWrite(directoryInfo))
+                if (!TestWrite(storagePath))
                 {
                     DirectoryError();
                     continue;
@@ -412,7 +407,7 @@ namespace MultiCache.Config.Interactive
         )
         {
             var repoName = pkgManager.Config.Prefix;
-            var repoDir = new DirectoryInfo(Path.Combine(appConfig.CachePath, repoName));
+            var repoDir = new DirectoryInfo(Path.Combine(appConfig.CachePath.FullName, repoName));
 
             bool keepGoing = true;
 

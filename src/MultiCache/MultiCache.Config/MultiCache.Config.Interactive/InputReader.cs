@@ -1,6 +1,7 @@
 namespace MultiCache.Config.Interactive
 {
     using System;
+    using System.IO;
     using Cronos;
     using LibConsole.Interactive;
     using LibConsole.Views;
@@ -57,12 +58,16 @@ namespace MultiCache.Config.Interactive
             return textField.Prompt();
         }
 
-        public static string ReadPath(string defaultPath)
+        public static DirectoryInfo? ReadPath(string defaultPath, bool allowEscape)
         {
-            var pathField = new ConsolePathField() { Buffer = defaultPath };
-            pathField.Prompt();
+            var pathField = new ConsolePathField()
+            {
+                Buffer = defaultPath,
+                AllowEscape = allowEscape
+            };
+            var res = pathField.PromptDirectory();
             AnsiConsole.WriteLine();
-            return pathField.Buffer;
+            return res;
         }
 
         public static string? ValidatedInput(

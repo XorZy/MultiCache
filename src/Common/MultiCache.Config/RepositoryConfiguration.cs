@@ -19,7 +19,7 @@ namespace MultiCache.Config
             AppConfiguration = appConfig;
             PackageManagerType = packageManagerType;
             Prefix = prefix;
-            CachePath = new DirectoryInfo(Path.Combine(appConfig.CachePath, Prefix));
+            CachePath = new DirectoryInfo(Path.Combine(appConfig.CachePath.FullName, Prefix));
             BufferSize = appConfig.BufferSize;
             Proxy = appConfig.Proxy;
             HttpClient = appConfig.HttpClient;

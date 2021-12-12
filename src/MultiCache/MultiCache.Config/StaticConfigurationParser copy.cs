@@ -26,9 +26,8 @@ namespace MultiCache.Config
         public static AppConfiguration ParseAppConfiguration(string configuration)
         {
             var dic = ParseFile(configuration);
-            var appConfig = new AppConfiguration(dic["CachePath"]);
+            var appConfig = new AppConfiguration(new DirectoryInfo(dic["CachePath"]));
             Assign(appConfig, dic);
-
 #pragma warning disable CA2000
             appConfig.HttpClient = new HttpClient(
                 new HttpClientHandler()
@@ -177,6 +176,11 @@ namespace MultiCache.Config
                 return value;
             }
             #endregion
+
+            if (type == typeof(DirectoryInfo))
+            {
+                return new DirectoryInfo(value);
+            }
 
             if (type == typeof(List<SchedulingOptions>))
             {
