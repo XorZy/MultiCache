@@ -14,6 +14,84 @@ namespace MultiCache.Config.Interactive
     using Spectre.Console;
     public static class ObjectEditor
     {
+        #region HANDLERS
+        private static void HandleBool(object editedObject, PropertyInfo property)
+        {
+            property.SetValue(
+                editedObject,
+                BoolField.Prompt("Choose a value", (bool)property.GetValue(editedObject))
+            );
+        }
+        private static void HandleDirectoryInfo(object editedObject, PropertyInfo property)
+        {
+            var directory = new ConsolePathField()
+            {
+                Buffer = property.GetValue(editedObject).ToString(),
+                AllowEscape = true
+            }.PromptDirectory();
+            if (directory is not null)
+            {
+                property.SetValue(editedObject, directory);
+            }
+        }
+        private static void HandleEnum(object editedObject, PropertyInfo property)
+        {
+            var value = ConsoleUtils.MultiChoice(
+                "Choose a value",
+                Enum.GetValues(property.PropertyType).Cast<object>()
+            );
+            property.SetValue(editedObject, value);
+        }
+
+        private static void HandleInt(object editedObject, PropertyInfo property)
+        {
+            while (true)
+            {
+                var value = new NumericField() { AllowEscape = true }.Prompt(
+                    "Type a value",
+                    (int)property.GetValue(editedObject)
+                );
+                if (value is not null)
+                {
+                    var range = property.GetCustomAttribute<RangeAttribute>();
+                    if (range?.IsValid(value) == false)
+                    {
+                        AnsiConsole.WriteLine();
+                        ConsoleUtils.Error("Value does not fall in the expected range");
+                        continue;
+                    }
+                    property.SetValue(editedObject, value);
+                    break;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+
+        private static void HandleString(object editedObject, PropertyInfo property)
+        {
+            var value = new ConsoleTextField() { AllowEscape = true }.Prompt(
+                "Type a value",
+                (string)property.GetValue(editedObject)
+            );
+            if (value is not null)
+            {
+                property.SetValue(editedObject, value);
+            }
+        }
+
+        private static void HandleSpeed(object editedObject, PropertyInfo property)
+        {
+            var speed = InputReader.ReadSpeed();
+            if (speed is not null)
+            {
+                property.SetValue(editedObject, speed);
+            }
+        }
+        #endregion
+
         private static void DrawPropertyHeader(PropertyInfo info, object? reference)
         {
             AnsiConsole.Write(new Rule(info.Name) { Alignment = Justify.Left });
@@ -56,7 +134,7 @@ namespace MultiCache.Config.Interactive
         }
 
         public static void EditSettings(
-            object objectSettings,
+            object editedObject,
             FileInfo configFileInfo,
             object? reference
         )
@@ -70,7 +148,7 @@ namespace MultiCache.Config.Interactive
                 typeof(Speed),
             };
 
-            var settableSettings = objectSettings
+            var settableSettings = editedObject
                 .GetType()
                 .GetProperties()
                 .Where(
@@ -100,7 +178,7 @@ namespace MultiCache.Config.Interactive
                 if (setting == CustomChoice.Quit)
                 {
                     StaticConfigurationParser.SerializeConfigFile(
-                        objectSettings,
+                        editedObject,
                         configFileInfo.FullName,
                         reference
                     );
@@ -116,75 +194,32 @@ namespace MultiCache.Config.Interactive
                     {
                         if (propertyType == typeof(bool))
                         {
-                            property.SetValue(
-                                objectSettings,
-                                BoolField.Prompt(
-                                    "Choose a value",
-                                    (bool)property.GetValue(objectSettings)
-                                )
-                            );
+                            HandleBool(editedObject, property);
                             break;
                         }
                         else if (propertyType == typeof(DirectoryInfo))
                         {
-                            var directory = new ConsolePathField()
-                            {
-                                Buffer = property.GetValue(objectSettings).ToString(),
-                                AllowEscape = true
-                            }.PromptDirectory();
-                            if (directory is not null)
-                            {
-                                property.SetValue(objectSettings, directory);
-                            }
+                            HandleDirectoryInfo(editedObject, property);
                             break;
                         }
                         else if (propertyType == typeof(int))
                         {
-                            var value = new NumericField() { AllowEscape = true }.Prompt(
-                                "Type a value",
-                                (int)property.GetValue(objectSettings)
-                            );
-                            if (value is not null)
-                            {
-                                var range = property.GetCustomAttribute<RangeAttribute>();
-                                if (range?.IsValid(value) == false)
-                                {
-                                    AnsiConsole.WriteLine();
-                                    ConsoleUtils.Error("Value does not fall in the expected range");
-                                    continue;
-                                }
-                                property.SetValue(objectSettings, value);
-                                break;
-                            }
+                            HandleInt(editedObject, property);
+                            break;
                         }
                         else if (propertyType == typeof(string))
                         {
-                            var value = new ConsoleTextField() { AllowEscape = true }.Prompt(
-                                "Type a value",
-                                (string)vChoice.Choice.GetValue(objectSettings)
-                            );
-                            if (value is not null)
-                            {
-                                property.SetValue(objectSettings, value);
-                            }
+                            HandleString(editedObject, property);
                             break;
                         }
                         else if (propertyType == typeof(Speed))
                         {
-                            var speed = InputReader.ReadSpeed();
-                            if (speed is not null)
-                            {
-                                property.SetValue(objectSettings, speed);
-                            }
+                            HandleSpeed(editedObject, property);
                             break;
                         }
                         else if (propertyType.IsSubclassOf(typeof(Enum)))
                         {
-                            var value = ConsoleUtils.MultiChoice(
-                                "Choose a value",
-                                Enum.GetValues(propertyType).Cast<object>()
-                            );
-                            property.SetValue(objectSettings, value);
+                            HandleEnum(editedObject, property);
                             break;
                         }
                         else
