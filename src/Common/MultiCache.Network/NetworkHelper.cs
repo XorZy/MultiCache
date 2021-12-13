@@ -130,14 +130,14 @@ namespace MultiCache.Network
                 destination.Headers["Content-Range"] =
                     source.Content.Headers.ContentRange.ToString();
             }
-            var etag = source.Content.Headers.GetValues("Etag");
-            if (etag.Any())
+            var etag = source.Headers.ETag;
+            if (etag is not null)
             {
-                destination.Headers["Etag"] = etag.First();
+                destination.Headers["Etag"] = etag.Tag;
             }
 
-            var acceptRanges = source.Content.Headers.GetValues("Accept-Ranges");
-            if (acceptRanges.Any())
+            var acceptRanges = source.Headers.AcceptRanges;
+            if (acceptRanges.Count > 0)
             {
                 destination.Headers["Accept-Ranges"] = acceptRanges.First();
             }
