@@ -58,7 +58,7 @@ namespace MultiCache.Models
             Bits = bits;
         }
 
-        public override string ToString()
+        public string ToString(int decimalCount)
         {
             if (Bits < 1024)
             {
@@ -66,21 +66,23 @@ namespace MultiCache.Models
             }
             else if (Bits < 1024 * 1024)
             {
-                return $"{Bits / 1024.0}Kib";
+                return $"{Math.Round(Bits / 1024.0, decimalCount)}Kib";
             }
             else if (Bits < 1024 * 1024 * 1024)
             {
-                return $"{Bits / (1024.0 * 1024.0)}Mib";
+                return $"{Math.Round(Bits / (1024.0 * 1024.0), decimalCount)}Mib";
             }
             else if (Bits < 1024L * 1024 * 1024 * 1024)
             {
-                return $"{Bits / (1024.0 * 1024.0 * 1024.0)}Gib";
+                return $"{Math.Round(Bits / (1024.0 * 1024.0 * 1024.0), decimalCount)}Gib";
             }
             else
             {
-                return $"{Bits / (1024.0 * 1024.0 * 1024.0 * 1024.0)}Tib";
+                return $"{Math.Round(Bits / (1024.0 * 1024.0 * 1024.0 * 1024.0), decimalCount)}Tib";
             }
         }
+
+        public override string ToString() => ToString(4);
 
         public int CompareTo(DataSize other)
         {

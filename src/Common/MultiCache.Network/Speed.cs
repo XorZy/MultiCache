@@ -49,8 +49,9 @@ namespace MultiCache.Network
             return left.CompareTo(right) >= 0;
         }
 
-        public override string ToString() => $"{base.ToString()}ps";
+        public override string ToString() => $"{_size}ps";
 
+        public string ToString(int decimalCount) => $"{_size.ToString(decimalCount)}ps";
 
         private readonly DataSize _size;
     }
