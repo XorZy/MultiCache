@@ -123,16 +123,13 @@ namespace PacmanHandler.Helpers
         }
         private PackageInfo ParsePackageInfo(Dictionary<string, string> packageInfo)
         {
-            return new PackageInfo(
+            var output = new PackageInfo(
                 repository: _repository,
                 name: packageInfo["%NAME%"],
                 version: new PacmanPackageVersion(packageInfo["%VERSION%"]),
                 architecture: packageInfo["%ARCH%"],
                 fileName: packageInfo["%FILENAME%"],
                 checksum: Checksum.Parse(ChecksumType.SHA256, packageInfo["%SHA256SUM%"]),
-                dependencies: packageInfo.ContainsKey("%DEPENDS%")
-                  ? packageInfo["%DEPENDS%"].Split('\n')
-                  : Array.Empty<string>(),
                 compressedSize: packageInfo["%CSIZE%"].ToLongInvariant(),
                 trueSize: packageInfo["%ISIZE%"].ToLongInvariant(),
                 buildDate: DateTime.UnixEpoch.AddSeconds(
@@ -141,6 +138,14 @@ namespace PacmanHandler.Helpers
             ) {
                 Signature = Convert.FromBase64String(packageInfo["%PGPSIG%"])
             };
+
+            packageInfo.TryGetValue("%DEPENDS%", out var dependencies);
+            output.Dependencies = dependencies?.Split('\n') ?? Array.Empty<string>();
+
+            packageInfo.TryGetValue("%REPLACES%", out var replaces);
+            output.Replaces = replaces?.Split('\n') ?? Array.Empty<string>();
+
+            return output;
         }
     }
 }

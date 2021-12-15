@@ -115,6 +115,24 @@ namespace MultiCache.PackageManager
                                     $"Package {packageID.Name} was not found in the database",
                                     LogLevel.Warning
                                 );
+
+                                if (Config.FetchReplacements)
+                                {
+                                    foreach (
+                                        var replacement in hashedUpstreamPackageInfos.Values.Where(
+                                            x => x.Replaces.Contains(packageID.Name)
+                                        )
+                                    )
+                                    {
+                                        Put(
+                                            $"{replacement.Name} replaces {packageID.Name}",
+                                            LogLevel.Warning
+                                        );
+                                        await MaintainPackageAsync(replacement, localVersions)
+                                            .ConfigureAwait(false);
+                                        dependencyRoots.Add(replacement);
+                                    }
+                                }
                             }
                         }
                     )

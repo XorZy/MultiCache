@@ -12,14 +12,12 @@ namespace MultiCache.Models
             string architecture,
             string fileName,
             Checksum checksum,
-            string[] dependencies,
             long compressedSize,
             long trueSize,
             DateTime buildDate
         ) : base(repository, name, architecture, fileName, version)
         {
             Checksum = checksum;
-            Dependencies = dependencies;
             CompressedSize = compressedSize;
             TrueSize = trueSize;
             BuildDate = buildDate;
@@ -30,7 +28,9 @@ namespace MultiCache.Models
         public Checksum Checksum { get; }
 
         public long CompressedSize { get; }
-        public IReadOnlyCollection<string> Dependencies { get; }
+        public IReadOnlyCollection<string> Dependencies { get; set; }
+
+        public IReadOnlyCollection<string> Replaces { get; set; }
         public long TrueSize { get; }
     }
 }

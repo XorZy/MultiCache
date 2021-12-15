@@ -70,6 +70,11 @@ namespace MultiCache.Config
         )]
         public bool FetchDependencies { get; set; } = true;
 
+        [Description(
+            "Whether replacement packages should also be fetched during maintenance, even if they are not tracked by the application."
+        )]
+        public bool FetchReplacements { get; set; } = true;
+
         [Description("The maximum download speed for forward operations.")]
         public Speed ForegroundReadMaxSpeed { get; set; }
 
