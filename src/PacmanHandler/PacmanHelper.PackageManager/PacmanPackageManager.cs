@@ -1,5 +1,7 @@
 namespace MultiCache.PackageManager.Pacman
 {
+    using Common.MultiCache.Models;
+    using LibConsole.Interactive;
     using MultiCache.Config;
     using MultiCache.Helpers;
     using MultiCache.Models;
@@ -226,9 +228,22 @@ namespace MultiCache.PackageManager.Pacman
                     .TryAsync(
                         async () =>
                         {
-                            await Network
-                                .FetchResourceAsync(newPackageResource)
+                            await ConsoleUtils
+                                .ProgressAsync(
+                                    remotePackageInfo.Name,
+                                    (progress, ct) =>
+                                    {
+                                        var dlProgress = new Progress<TransferProgress>();
+                                        dlProgress.ProgressChanged += (s, e) =>
+                                            progress.Report(e.Ratio);
+                                        return Network.FetchResourceAsync(
+                                            newPackageResource,
+                                            progress: dlProgress
+                                        );
+                                    }
+                                )
                                 .ConfigureAwait(false);
+
                             if (!newPackageResource.FullFile.Exists)
                             {
                                 throw new InvalidDataException("Integrity check failed!");

@@ -1,5 +1,6 @@
 namespace MultiCache.Network
 {
+    using Common.MultiCache.Models;
     using MultiCache.Config;
     using MultiCache.Helpers;
     using MultiCache.Models;
@@ -68,12 +69,13 @@ namespace MultiCache.Network
 
         public async Task FetchResourceAsync(
             NetworkResource resource,
-            HttpListenerContext? clientContext = null
+            HttpListenerContext? clientContext = null,
+            IProgress<TransferProgress>? progress = null
         )
         {
             if (resource is CacheableResource cr)
             {
-                await HandleCacheableResource(cr, clientContext).ConfigureAwait(false);
+                await HandleCacheableResource(cr, clientContext, progress).ConfigureAwait(false);
             }
             else if (clientContext is not null)
             {
@@ -171,7 +173,7 @@ namespace MultiCache.Network
                     var request = new HttpRequestMessage()
                     {
                         Method = HttpMethod.Get,
-                        RequestUri = resource.DownloadUri,
+                        RequestUri = resource.DownloadUri
                     }
                 )
                 {
@@ -209,7 +211,8 @@ namespace MultiCache.Network
         }
         private async Task HandleCacheableResource(
             CacheableResource cr,
-            HttpListenerContext? clientContext
+            HttpListenerContext? clientContext,
+            IProgress<TransferProgress>? progress = null
         )
         {
             long clientStartOffset = clientContext is null
@@ -252,10 +255,11 @@ namespace MultiCache.Network
                         cr,
                         clientContext is null
                           ? _config.BackgroundReadMaxSpeed
-                          : _config.ForegroundReadMaxSpeed
+                          : _config.ForegroundReadMaxSpeed,
+                        progress
                     );
 
-                    async Task DownloadTask()
+                    async Task BuildDownloadTask()
                     {
                         try
                         {
@@ -271,7 +275,7 @@ namespace MultiCache.Network
                         }
                     }
 
-                    tasks.Add(DownloadTask());
+                    tasks.Add(BuildDownloadTask());
                 }
 
                 if (clientContext is not null)
@@ -353,7 +357,8 @@ namespace MultiCache.Network
 
         private SynchronizationData InitiateDownload(
             CacheableResource cacheableResource,
-            Speed maxSpeed
+            Speed maxSpeed,
+            IProgress<TransferProgress>? progress = null
         )
         {
             var syncTaskSource = new TaskCompletionSource();
@@ -365,6 +370,7 @@ namespace MultiCache.Network
                     cacheableResource,
                     syncTaskSource,
                     maxSpeed,
+                    progress,
                     ctSource.Token
                 ),
                 syncTaskSource.Task,
@@ -470,6 +476,7 @@ namespace MultiCache.Network
             CacheableResource resource,
             TaskCompletionSource sync,
             Speed maxSpeed,
+            IProgress<TransferProgress>? progress = null,
             CancellationToken ct = default
         )
         {
@@ -539,6 +546,7 @@ namespace MultiCache.Network
                                                 resource,
                                                 sync,
                                                 maxSpeed,
+                                                progress,
                                                 ct
                                             )
                                             .ConfigureAwait(false);
@@ -565,10 +573,27 @@ namespace MultiCache.Network
                                             $"Beginning upstream download {resource.DownloadUri} (offset {offset})",
                                             LogLevel.Debug
                                         );
+
+                                        long totalBytes = offset;
+                                        var transferProgress = new Progress<int>();
+
+                                        if (_syncDic[resource].ContentLength > -1)
+                                        {
+                                            transferProgress.ProgressChanged += (s, e) =>
+                                                progress?.Report(
+                                                    new TransferProgress(
+                                                        _syncDic[resource].ContentLength,
+                                                        totalBytes += e
+                                                    )
+                                                );
+                                        }
+
                                         await throttledStream
                                             .CopyToMultiAsync(
                                                 _config.BufferSize,
+                                                transferProgress,
                                                 ct,
+                                                _config.NetworkTimeoutMs,
                                                 new[] { fileStream, cryptoStream }
                                             )
                                             .ConfigureAwait(false);
@@ -616,7 +641,8 @@ namespace MultiCache.Network
                 // this can happen if the task was cancelled abruptly, just before finalizing the download
                 // so we delete it and try again from scratch
                 resource.DeleteAll();
-                await UpstreamFetchAndSaveAsync(resource, sync, maxSpeed, ct).ConfigureAwait(false);
+                await UpstreamFetchAndSaveAsync(resource, sync, maxSpeed, progress, ct)
+                    .ConfigureAwait(false);
             }
             catch (Exception ex)
             {

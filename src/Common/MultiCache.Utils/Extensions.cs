@@ -7,23 +7,49 @@ namespace MultiCache.Utils
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Common.MultiCache.Models;
 
     public static class Extensions
     {
         public static async Task CopyToMultiAsync(
             this Stream input,
             int bufferSize,
+            IProgress<int>? progress,
             CancellationToken ct,
+            int timeoutMs = -1,
             params Stream[] destinations
         )
         {
             var buffer = new byte[bufferSize];
             int read;
-            while ((read = await input.ReadAsync(buffer).ConfigureAwait(false)) > 0)
+
+            CancellationTokenSource? timeoutSource = null,
+                combinedCtSource = null;
+
+            try
             {
-                ct.ThrowIfCancellationRequested();
-                await Task.WhenAll(destinations.Select(d => d.WriteAsync(buffer, 0, read)))
-                    .ConfigureAwait(false);
+                do
+                {
+                    timeoutSource?.Dispose();
+                    combinedCtSource?.Dispose();
+                    timeoutSource = new CancellationTokenSource(timeoutMs);
+                    combinedCtSource = CancellationTokenSource.CreateLinkedTokenSource(
+                        ct,
+                        timeoutSource.Token
+                    );
+                    read = await input
+                        .ReadAsync(buffer, combinedCtSource.Token)
+                        .ConfigureAwait(false);
+                    progress?.Report(read);
+
+                    await Task.WhenAll(destinations.Select(d => d.WriteAsync(buffer, 0, read)))
+                        .ConfigureAwait(false);
+                } while (read > 0);
+            }
+            finally
+            {
+                timeoutSource?.Dispose();
+                combinedCtSource?.Dispose();
             }
         }
 

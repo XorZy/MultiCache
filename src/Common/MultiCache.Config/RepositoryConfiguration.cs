@@ -21,12 +21,16 @@ namespace MultiCache.Config
             Prefix = prefix;
             CachePath = new DirectoryInfo(Path.Combine(appConfig.CachePath.FullName, Prefix));
             BufferSize = appConfig.BufferSize;
+            NetworkTimeoutMs = appConfig.NetworkTimeoutMs;
             Proxy = appConfig.Proxy;
             HttpClient = appConfig.HttpClient;
         }
 
         [JsonIgnore]
         public int BufferSize { get; set; }
+
+        [JsonIgnore]
+        public int NetworkTimeoutMs { get; set; }
 
         [JsonIgnore]
         public AppConfiguration AppConfiguration { get; }
