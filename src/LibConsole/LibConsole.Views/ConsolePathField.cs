@@ -49,9 +49,9 @@ namespace LibConsole.Views
                                 for (int i = 1; i < dirs.Length; i++)
                                 {
                                     if (
-                                        dirs[i].FullName.Length<=commonLength ||
-                                        dirs[i].FullName[commonLength]
-                                        != dirs[i - 1].FullName[commonLength]
+                                        dirs[i].FullName.Length <= commonLength
+                                        || dirs[i].FullName[commonLength]
+                                            != dirs[i - 1].FullName[commonLength]
                                     )
                                     {
                                         commonLength--;
