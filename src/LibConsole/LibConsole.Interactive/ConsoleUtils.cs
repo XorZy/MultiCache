@@ -124,10 +124,9 @@ namespace LibConsole.Interactive
                     }
                 );
         }
-
         public static void Error(string error)
         {
-            AnsiConsole.MarkupLine($"[red]{error}[/]");
+            AnsiConsole.MarkupLine($"[red]{error.EscapeMarkup()}[/]");
         }
     }
 }
