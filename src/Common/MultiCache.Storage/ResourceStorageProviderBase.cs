@@ -29,6 +29,11 @@ namespace MultiCache.Storage
 
         public abstract IEnumerable<StoredPackageInformation> GetStoredPackages();
 
+        public abstract DataSize GetTotalSize(
+            IProgress<DataSize> progress = null,
+            CancellationToken ct = default
+        );
+
         public virtual bool IsResourceLocked(CacheableResource resource)
         {
             lock (_openedFiles)

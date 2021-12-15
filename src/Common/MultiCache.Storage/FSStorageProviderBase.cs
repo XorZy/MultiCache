@@ -27,6 +27,32 @@ namespace MultiCache.Storage
         public override IResourceHandle GetPartialHandle(CacheableResource resource) =>
             new FileResourceHandle(GetFileInfo(resource, true));
 
+        public override DataSize GetTotalSize(
+            IProgress<DataSize> progress = null,
+            CancellationToken ct = default
+        )
+        {
+            var stack = new Stack<DirectoryInfo>();
+            stack.Push(_rootDir);
+            long total = 0;
+            while (stack.Count > 0)
+            {
+                var cwd = stack.Pop();
+                foreach (var dir in cwd.EnumerateDirectories())
+                {
+                    ct.ThrowIfCancellationRequested();
+                    stack.Push(dir);
+                }
+                foreach (var file in cwd.EnumerateFiles())
+                {
+                    ct.ThrowIfCancellationRequested();
+                    total += file.Length;
+                    progress?.Report(new DataSize(total));
+                }
+            }
+            return new DataSize(total);
+        }
+
         public override void PurgeAllPackageVersions(Package package)
         {
             new DirectoryInfo(Path.Combine(GetPackagePath(package))).Delete(true);

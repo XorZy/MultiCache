@@ -400,6 +400,36 @@ namespace MultiCache.Config.Interactive
             );
         }
 
+        private static async Task PrintRepositoryStatsAsync(PackageManagerBase pkgManager)
+        {
+            var table = new Table();
+            table.AddColumn("Total Size");
+            table.AddColumn("Package Count");
+
+            var sizeProgress = new Progress<DataSize>();
+
+            var (size, packages) = await ConsoleUtils
+                .SpinAsync(
+                    "Computing",
+                    () =>
+                        Task.Run(
+                            () =>
+                            {
+                                //we have to rely on Task.run as there is no
+                                //async fle system enumeration at the moment
+                                var size = pkgManager.PackageStorage.GetTotalSize();
+                                var packages = pkgManager.PackageStorage.GetStoredPackages();
+                                return (size, packages);
+                            }
+                        )
+                )
+                .ConfigureAwait(false);
+
+            table.AddRow(size.ToString(), packages.Count().ToString());
+
+            AnsiConsole.Write(table);
+        }
+
         private static async Task ManageRepositoryAsync(
             AppConfiguration appConfig,
             PackageManagerBase pkgManager,
@@ -425,6 +455,7 @@ namespace MultiCache.Config.Interactive
                             "Manage Schedules",
                             () => ManageSchedules(pkgManager.Config, repoConfigFileInfo)
                         ),
+                        new AsyncOption("View stats", () => PrintRepositoryStatsAsync(pkgManager)),
                         new AsyncOption(
                             "Other settings",
                             () =>
@@ -503,12 +534,14 @@ namespace MultiCache.Config.Interactive
                     var repoConfigFileInfo = fileChoice.Choice;
                     var repoName = Path.GetFileNameWithoutExtension(repoConfigFileInfo.Name);
 
-                    var pkgManager = PackageManagerProvider.InstantiatePackageManager(
-                        StaticConfigurationParser.ParseRepositoryConfiguration(
-                            repoConfigFileInfo,
-                            appConfig
+                    var pkgManager = await PackageManagerProvider
+                        .SetupRepositoryAsync(
+                            StaticConfigurationParser.ParseRepositoryConfiguration(
+                                repoConfigFileInfo,
+                                appConfig
+                            )
                         )
-                    );
+                        .ConfigureAwait(false);
 
                     await ManageRepositoryAsync(appConfig, pkgManager, repoConfigFileInfo)
                         .ConfigureAwait(false);
