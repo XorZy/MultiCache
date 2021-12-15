@@ -1,5 +1,6 @@
 namespace MultiCache.PackageManager
 {
+    using LibConsole.Interactive;
     using MultiCache.Api;
     using MultiCache.Config;
     using MultiCache.Helpers;
@@ -78,7 +79,9 @@ namespace MultiCache.PackageManager
                 await MirrorRanker.RankAndAssignMirrorsAsync(this).ConfigureAwait(false);
 
                 var hashedUpstreamPackageInfos = (
-                    await TryGetPackageInfosAsync().ConfigureAwait(false)
+                    await ConsoleUtils
+                        .SpinAsync("Updating package databases", TryGetPackageInfosAsync)
+                        .ConfigureAwait(false)
                 ).ToDictionary(x => x.Name, x => x);
 
                 var dependencyRoots = new ConcurrentBag<PackageInfo>();
@@ -234,6 +237,7 @@ namespace MultiCache.PackageManager
                     var packageResource in localVersions.Where(x => x.Package.Version != newVersion)
                 )
                 {
+                    Put($"Deleting {packageResource.Package}", LogLevel.Debug);
                     packageResource.DeleteAll();
                 }
             }
