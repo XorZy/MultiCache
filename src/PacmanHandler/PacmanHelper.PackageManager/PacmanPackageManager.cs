@@ -240,8 +240,6 @@ namespace MultiCache.PackageManager.Pacman
                     ) // we don't throw so we can continue with the other packages
                     .ConfigureAwait(false);
             }
-
-            Cleanup(localVersions, remotePackageInfo.Version as PacmanPackageVersion);
         }
 
         protected override async Task<IList<PackageInfo>> TryGetRepositoryPackagesAsync(
