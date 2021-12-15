@@ -80,26 +80,10 @@ namespace MultiCache.Models.Pacman
                 .ToArray();
         }
 
-        public int CompareTo(PacmanPackageVersion? other)
+        public static int SplitAndCompare(string versionA, string versionB)
         {
-            if (other is null)
-            {
-                return 1;
-            }
-
-            if (VersionString == other.VersionString)
-            {
-                return 0;
-            }
-
-            var tmp = Compare(Epoch, other.Epoch);
-            if (tmp != 0)
-            {
-                return tmp;
-            }
-
-            var a = GetMatches(Version);
-            var b = GetMatches(other.Version);
+            var a = GetMatches(versionA);
+            var b = GetMatches(versionB);
 
             for (int i = 0; i < a.Length && i < b.Length; i++)
             {
@@ -126,15 +110,43 @@ namespace MultiCache.Models.Pacman
                 return 1;
             }
 
-            tmp = a.Length.CompareTo(b.Length);
+            var tmp = a.Length.CompareTo(b.Length);
             if (tmp != 0)
             {
                 return tmp;
             }
 
+            return 0;
+        }
+
+        public int CompareTo(PacmanPackageVersion? other)
+        {
+            if (other is null)
+            {
+                return 1;
+            }
+
+            if (VersionString == other.VersionString)
+            {
+                return 0;
+            }
+
+            var tmp = SplitAndCompare(Epoch, other.Epoch);
+            if (tmp != 0)
+            {
+                return tmp;
+            }
+
+            var firstComparison = SplitAndCompare(Version, other.Version);
+
+            if (firstComparison != 0)
+            {
+                return firstComparison;
+            }
+
             if (Rel != "0" && other.Rel != "0")
             {
-                tmp = Compare(Rel, other.Rel);
+                tmp = SplitAndCompare(Rel, other.Rel);
                 if (tmp != 0)
                 {
                     return tmp;
