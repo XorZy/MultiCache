@@ -92,7 +92,7 @@ namespace MultiCache.PackageManager
                         },
                         async (localInfo, _) =>
                         {
-                            var (packageID, versions) = localInfo;
+                            var (packageID, localVersions) = localInfo;
 
                             if (
                                 hashedUpstreamPackageInfos.TryGetValue(
@@ -101,9 +101,10 @@ namespace MultiCache.PackageManager
                                 )
                             )
                             {
-                                await MaintainPackageAsync(remotePackageInfo, versions)
+                                await MaintainPackageAsync(remotePackageInfo, localVersions)
                                     .ConfigureAwait(false);
                                 dependencyRoots.Add(remotePackageInfo);
+                                Cleanup(localVersions, remotePackageInfo.Version);
                             }
                             else
                             {
@@ -213,11 +214,11 @@ namespace MultiCache.PackageManager
         }
 
         protected virtual void Cleanup(
-            IEnumerable<PackageResourceBase> versions,
+            IEnumerable<PackageResourceBase> localVersions,
             PackageVersion newVersion
         )
         {
-            foreach (var version in versions)
+            foreach (var version in localVersions)
             {
                 // just as a precaution
                 if (version.FullFile.Exists && version.PartialFile.Exists)
@@ -230,7 +231,7 @@ namespace MultiCache.PackageManager
             {
                 // we get rid of old package versions and unnecessary files
                 foreach (
-                    var packageResource in versions.Where(x => x.Package.Version != newVersion)
+                    var packageResource in localVersions.Where(x => x.Package.Version != newVersion)
                 )
                 {
                     packageResource.DeleteAll();
