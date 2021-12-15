@@ -23,7 +23,7 @@ namespace MultiCache.PackageManager
         )
         {
             var pkgManager = InstantiatePackageManager(config);
-            if (pkgManager.Config.Mirrors.Count == 0)
+            if (pkgManager.Config.DistroType != DistroType.Generic)
             {
                 await MirrorRanker.RankAndAssignMirrorsAsync(pkgManager).ConfigureAwait(false);
             }

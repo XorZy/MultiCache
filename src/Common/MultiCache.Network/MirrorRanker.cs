@@ -14,9 +14,9 @@ namespace MultiCache.Network
                 LogLevel.Info
             );
 
-            // user-specified repos take precedence
+            // only use user-specified mirrors if generic is chosen
             var mirrorList =
-                pkgManager.Config.Mirrors.Count == 0
+                pkgManager.Config.DistroType != DistroType.Generic
                     ? await pkgManager.GetSavedMirrorsAsync().ConfigureAwait(false)
                     : new MirrorList(
                           DateTime.UtcNow,
