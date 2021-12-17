@@ -265,7 +265,7 @@ namespace MultiCache.Network
                         {
                             await (
                                 clientContext is null || _config.KeepDownloading
-                                    ? syncData.CountedCTSource.CountTask(syncData.MonitoredTask) // make sure a client cannot cancel the task
+                                    ? syncData.CountedCTSource.MonitorTask(syncData.MonitoredTask) // make sure a client cannot cancel the task
                                     : syncData.MonitoredTask
                             ).ConfigureAwait(false);
                         }
@@ -283,7 +283,7 @@ namespace MultiCache.Network
                     var downloadInfo = _syncDic[cr];
 
                     tasks.Add(
-                        downloadInfo.CountedCTSource.CountTask(
+                        downloadInfo.CountedCTSource.MonitorTask(
                             HookedTransfer(
                                 cr,
                                 downloadInfo,
@@ -339,6 +339,11 @@ namespace MultiCache.Network
                         {
                             if (info.MonitoredTask.IsCompleted)
                             {
+                                if (info.MonitoredTask.IsFaulted)
+                                {
+                                    throw (info.MonitoredTask.Exception as Exception)
+                                        ?? new IOException("The download task ended abruptly");
+                                }
                                 break;
                             }
 

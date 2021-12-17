@@ -13,7 +13,7 @@ namespace MultiCache.Synchronization
 
         public CancellationToken Token => _src.Token;
 
-        public async Task CountTask(Task task)
+        public async Task MonitorTask(Task task)
         {
             Increment();
             try
