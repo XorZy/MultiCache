@@ -56,6 +56,7 @@
                     await CLIConfigurator
                         .ManageAsync(configurationDir, appConfig)
                         .ConfigureAwait(false);
+                    return;
                 }
                 var repoConfigs = LoadRepositoryConfigurations(configurationDir, appConfig);
                 var repos = repoConfigs
