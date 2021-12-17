@@ -71,6 +71,12 @@ dotnet run
     echo "Server=http://[ip]:5050/[repository]/\$repo/\$arch" > /etc/pacman.d/mirrorlist
 ```
 
+3. On Manjaro it may be necessary to run the following command to prevent your system from overriding your mirror choice.
+
+```sh
+    sudo systemctl mask pamac-mirrorlist.timer
+```
+
 1. You can then run pacman as you would normally and MultiCache will learn what packages you use automatically.
 
 2. Optionally you can let MultiCache know immediately about the packages that are installed on your machine(s). Run the following command on every computer you wish to keep updated with MultiCache
