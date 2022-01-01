@@ -309,7 +309,7 @@ namespace MultiCache.Network
             await info.SynchronizationTask.ConfigureAwait(false);
 
             _pkgManager.Put(
-                $"Beginning hooked transfer {resource.DownloadUri} to {clientContext.Request.UserHostName}",
+                $"Beginning hooked transfer {resource.DownloadUri} to {clientContext.Request.RemoteEndPoint}",
                 LogLevel.Debug
             );
 
