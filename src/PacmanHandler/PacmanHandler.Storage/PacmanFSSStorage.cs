@@ -52,7 +52,8 @@ namespace PacmanHandler.Storage
                     {
                         var packageBase = new PackageIdentifier(
                             package.Name,
-                            repositoryArchitectureDir.Name
+                            repositoryArchitectureDir.Name,
+                            new Repository(repositoryDir.Name, repositoryArchitectureDir.Name)
                         );
                         var versions = new List<PackageResourceBase>();
                         foreach (var version in package.EnumerateDirectories())

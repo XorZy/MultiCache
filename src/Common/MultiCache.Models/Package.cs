@@ -1,6 +1,6 @@
 namespace MultiCache.Models
 {
-    public class Package : PackageIdentifier
+    public record Package : PackageIdentifier
     {
         public Package(
             Repository repository,
@@ -8,9 +8,8 @@ namespace MultiCache.Models
             string architecture,
             string fileName,
             PackageVersion version
-        ) : base(name, architecture)
+        ) : base(name, architecture, repository)
         {
-            Repository = repository;
             Name = name;
             Architecture = architecture;
             FileName = fileName;
@@ -18,7 +17,6 @@ namespace MultiCache.Models
         }
 
         public string FileName { get; init; }
-        public Repository Repository { get; init; }
         public PackageVersion Version { get; init; }
 
         public override string ToString() => Name + "-" + Version + "-" + Architecture;

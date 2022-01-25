@@ -3,7 +3,7 @@ namespace MultiCache.Models
     using System;
     using System.Collections.Generic;
 
-    public class PackageInfo : Package
+    public record PackageInfo : Package
     {
         public PackageInfo(
             Repository repository,

@@ -9,6 +9,7 @@ namespace MultiCache.PackageManager
     using MultiCache.Resource;
     using MultiCache.Storage;
     using System.Collections.Concurrent;
+    using System.Data;
     using System.Diagnostics;
     using System.Net;
 
@@ -82,7 +83,9 @@ namespace MultiCache.PackageManager
                     await ConsoleUtils
                         .SpinAsync("Updating package databases", TryGetPackageInfosAsync)
                         .ConfigureAwait(false)
-                ).ToDictionary(x => x.Name, x => x);
+                )
+                    .GroupBy(x => x.Name)
+                    .ToDictionary(x => x.Key, x => x.ToArray());
 
                 var dependencyRoots = new ConcurrentBag<PackageInfo>();
 
@@ -100,14 +103,17 @@ namespace MultiCache.PackageManager
                             if (
                                 hashedUpstreamPackageInfos.TryGetValue(
                                     packageID.Name,
-                                    out var remotePackageInfo
+                                    out var remotePackageInfos
                                 )
                             )
                             {
-                                await MaintainPackageAsync(remotePackageInfo, localVersions)
-                                    .ConfigureAwait(false);
-                                dependencyRoots.Add(remotePackageInfo);
-                                Cleanup(localVersions, remotePackageInfo.Version);
+                                foreach (var remotePackageInfo in remotePackageInfos)
+                                {
+                                    await MaintainPackageAsync(remotePackageInfo, localVersions)
+                                        .ConfigureAwait(false);
+                                    dependencyRoots.Add(remotePackageInfo);
+                                    Cleanup(localVersions, remotePackageInfo.Version);
+                                }
                             }
                             else
                             {
@@ -119,9 +125,9 @@ namespace MultiCache.PackageManager
                                 if (Config.FetchReplacements)
                                 {
                                     foreach (
-                                        var replacement in hashedUpstreamPackageInfos.Values.Where(
-                                            x => x.Replaces.Contains(packageID.Name)
-                                        )
+                                        var replacement in hashedUpstreamPackageInfos.Values
+                                            .SelectMany(x => x)
+                                            .Where(x => x.Replaces.Contains(packageID.Name))
                                     )
                                     {
                                         Put(
@@ -169,7 +175,7 @@ namespace MultiCache.PackageManager
         );
 
         protected static IEnumerable<PackageInfo> ResolveDependenciesRecursive(
-            IDictionary<string, PackageInfo> hashedInfos,
+            IDictionary<string, PackageInfo[]> hashedInfos,
             IEnumerable<PackageInfo> rootPackages
         )
         {
@@ -178,28 +184,25 @@ namespace MultiCache.PackageManager
             var allDependencies = rootPackages.SelectMany(x => x.Dependencies).ToHashSet();
             var resolvedDependencies = new HashSet<PackageInfo>();
             var stack = new Stack<string>(allDependencies);
+
             while (stack.Count > 0)
             {
-                var dependency = stack.Pop();
+                var dependencyName = stack.Pop();
 
-                if (
-                    hashedInfos.TryGetValue(dependency, out var packageInfo)
-                    && resolvedDependencies.Add(packageInfo)
-                )
+                if (hashedInfos.TryGetValue(dependencyName, out var infos))
                 {
-                    foreach (var dep2 in packageInfo.Dependencies)
+                    foreach (var depInfo in infos)
                     {
-                        if (
-                            hashedInfos.TryGetValue(dep2, out packageInfo)
-                            && resolvedDependencies.Add(packageInfo)
-                        )
+                        if (!resolvedDependencies.Add(depInfo))
                         {
-                            stack.Push(dep2);
+                            foreach (var dep2 in depInfo.Dependencies)
+                            {
+                                stack.Push(dep2);
+                            }
                         }
                     }
                 }
             }
-
             sw.Stop();
             Log.Put($"Depency resolution took {sw.ElapsedMilliseconds}ms", LogLevel.Debug);
             return resolvedDependencies;
@@ -210,7 +213,7 @@ namespace MultiCache.PackageManager
             PackageResourceBase resource
         )
         {
-            Put($"Checking the integrity of {packageInfo}", LogLevel.Debug);
+            Put($"Checking the integrity of {packageInfo.Name}", LogLevel.Debug);
             if (!resource.FullFile.Exists || resource.FullFile.Length != packageInfo.CompressedSize)
             {
                 return false;
@@ -290,7 +293,7 @@ namespace MultiCache.PackageManager
         );
 
         private async Task MaintainDependenciesAsync(
-            IDictionary<string, PackageInfo> hashedupstreamPackageInfos,
+            IDictionary<string, PackageInfo[]> hashedupstreamPackageInfos,
             IEnumerable<PackageInfo> rootPackages
         )
         {
@@ -320,7 +323,6 @@ namespace MultiCache.PackageManager
                     await TryGetRepositoryPackagesAsync(repository).ConfigureAwait(false)
                 );
             }
-
             return output;
         }
     }
