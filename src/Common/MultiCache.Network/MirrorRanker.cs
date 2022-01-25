@@ -7,7 +7,10 @@ namespace MultiCache.Network
 
     public static class MirrorRanker
     {
-        public static async Task RankAndAssignMirrorsAsync(PackageManagerBase pkgManager)
+        public static async Task RankAndAssignMirrorsAsync(
+            PackageManagerBase pkgManager,
+            bool forceRefresh = false
+        )
         {
             pkgManager.Put(
                 "Trying to find the best mirror, this operation should take about one minute on the first launch",
@@ -25,8 +28,11 @@ namespace MultiCache.Network
                           pkgManager.Config.Mirrors.ToList()
                       );
             if (
-                (DateTime.Now - mirrorList.CreationTime).TotalDays > 15
-                && pkgManager.Config.DistroType != DistroType.Generic
+                forceRefresh
+                || (
+                    (DateTime.Now - mirrorList.CreationTime).TotalDays > 15
+                    && pkgManager.Config.DistroType != DistroType.Generic
+                )
             )
             {
                 pkgManager.Put("Mirror list is old, refreshing", LogLevel.Debug);

@@ -429,6 +429,16 @@ namespace MultiCache.Config.Interactive
 
             AnsiConsole.Write(table);
         }
+        private static Task RefreshMirrorsAsync(PackageManagerBase pkgManager)
+        {
+            if (pkgManager.Config.DistroType == DistroType.Generic)
+            {
+                ConsoleUtils.Error("No mirror provider found");
+                return Task.CompletedTask;
+            }
+
+            return MirrorRanker.RankAndAssignMirrorsAsync(pkgManager, true);
+        }
 
         private static async Task ManageRepositoryAsync(
             AppConfiguration appConfig,
@@ -455,6 +465,7 @@ namespace MultiCache.Config.Interactive
                             "Manage Schedules",
                             () => ManageSchedules(pkgManager.Config, repoConfigFileInfo)
                         ),
+                        new AsyncOption("Refresh mirrors", () => RefreshMirrorsAsync(pkgManager)),
                         new AsyncOption("View stats", () => PrintRepositoryStatsAsync(pkgManager)),
                         new AsyncOption(
                             "Other settings",
