@@ -229,18 +229,22 @@ namespace MultiCache.PackageManager.Pacman
                         async () =>
                         {
                             await ConsoleUtils
-                                .ProgressAsync(
+                                .DownloadProgressAsync(
                                     remotePackageInfo.Name,
-                                    (progress, ct) =>
+                                    (consoleTaskProgress, ct) =>
                                     {
-                                        var dlProgress = new Progress<TransferProgress>();
+                                        var dlProgress = new Progress<TransferProgressInfo>();
+
                                         dlProgress.ProgressChanged += (s, e) =>
-                                            progress.Report(e.Ratio);
+                                            consoleTaskProgress.Report(
+                                                (e.TotalDownloadedBytes, e.NewBytes)
+                                            );
                                         return Network.FetchResourceAsync(
                                             newPackageResource,
                                             progress: dlProgress
                                         );
-                                    }
+                                    },
+                                    remotePackageInfo.CompressedSize
                                 )
                                 .ConfigureAwait(false);
 
@@ -342,7 +346,8 @@ namespace MultiCache.PackageManager.Pacman
                     catch (WebException wEx)
                         when (wEx.Response is HttpWebResponse hRes
                             && hRes.StatusCode == HttpStatusCode.NotFound
-                        ) { }
+                        )
+                    { }
                 }
             }
         }

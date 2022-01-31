@@ -106,7 +106,7 @@ namespace LibConsole.Interactive
                 .StartAsync(message, (_) => action());
         }
 
-        public static Task ProgressAsync(
+        public static Task RatioProgressAsync(
             string message,
             Func<IProgress<double>, CancellationToken, Task> action,
             CancellationToken ct = default
@@ -115,15 +115,65 @@ namespace LibConsole.Interactive
             var progress = new Progress<double>();
             return AnsiConsole
                 .Progress()
+                .Columns(
+                    new TaskDescriptionColumn(),
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                    new RemainingTimeColumn(),
+                    new SpinnerColumn()
+                )
                 .StartAsync(
                     (ctx) =>
                     {
-                        var progress1 = ctx.AddTask(message, true, 1.0);
-                        progress.ProgressChanged += (s, e) => progress1.Value = e;
+                        var consoleProgress = ctx.AddTask(message, true, 1.0);
+                        progress.ProgressChanged += (s, e) => consoleProgress.Value = e;
                         return action(progress, ct);
                     }
                 );
         }
+
+        public static Task DownloadProgressAsync(
+            string message,
+            Func<IProgress<(long totalBytes, long newBytes)>, CancellationToken, Task> action,
+            long dlSize,
+            CancellationToken ct = default
+        )
+        {
+            var progress = new Progress<(long totalBytes, long newBytes)>();
+            return AnsiConsole
+                .Progress()
+                .Columns(
+                    new TaskDescriptionColumn(),
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                    new RemainingTimeColumn(),
+                    new TransferSpeedColumn(),
+                    new SpinnerColumn()
+                )
+                .StartAsync(
+                    (ctx) =>
+                    {
+                        var consoleProgressTask = ctx.AddTask(message, true, dlSize);
+                        if (dlSize > 0)
+                        {
+                            progress.ProgressChanged += (s, e) =>
+                            {
+                                if (consoleProgressTask.Value == 0)
+                                {
+                                    //take into account partially downloaded files
+                                    consoleProgressTask.Value = e.totalBytes;
+                                }
+                                else
+                                {
+                                    consoleProgressTask.Increment(e.newBytes);
+                                }
+                            };
+                        }
+                        return action(progress, ct);
+                    }
+                );
+        }
+
         public static void Error(string error)
         {
             AnsiConsole.MarkupLine($"[red]{error.EscapeMarkup()}[/]");

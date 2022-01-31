@@ -70,7 +70,7 @@ namespace MultiCache.Network
         public async Task FetchResourceAsync(
             NetworkResource resource,
             HttpListenerContext? clientContext = null,
-            IProgress<TransferProgress>? progress = null
+            IProgress<TransferProgressInfo>? progress = null
         )
         {
             if (resource is CacheableResource cr)
@@ -212,7 +212,7 @@ namespace MultiCache.Network
         private async Task HandleCacheableResource(
             CacheableResource cr,
             HttpListenerContext? clientContext,
-            IProgress<TransferProgress>? progress = null
+            IProgress<TransferProgressInfo>? progress = null
         )
         {
             long clientStartOffset = clientContext is null
@@ -363,7 +363,7 @@ namespace MultiCache.Network
         private SynchronizationData InitiateDownload(
             CacheableResource cacheableResource,
             Speed maxSpeed,
-            IProgress<TransferProgress>? progress = null
+            IProgress<TransferProgressInfo>? progress = null
         )
         {
             var syncTaskSource = new TaskCompletionSource();
@@ -481,7 +481,7 @@ namespace MultiCache.Network
             CacheableResource resource,
             TaskCompletionSource sync,
             Speed maxSpeed,
-            IProgress<TransferProgress>? progress = null,
+            IProgress<TransferProgressInfo>? progress = null,
             CancellationToken ct = default
         )
         {
@@ -584,11 +584,12 @@ namespace MultiCache.Network
 
                                         if (_syncDic[resource].ContentLength > -1)
                                         {
-                                            transferProgress.ProgressChanged += (s, e) =>
+                                            transferProgress.ProgressChanged += (_, readBytes) =>
                                                 progress?.Report(
-                                                    new TransferProgress(
+                                                    new TransferProgressInfo(
                                                         _syncDic[resource].ContentLength,
-                                                        totalBytes += e
+                                                        totalBytes += readBytes,
+                                                        readBytes
                                                     )
                                                 );
                                         }

@@ -96,7 +96,7 @@ namespace MultiCache.Network
                     // first we sort by ping because it's quite fast and gives a somewhat
                     // good approximation of distance
                     await ConsoleUtils
-                        .ProgressAsync(
+                        .RatioProgressAsync(
                             "Finding the closest mirror",
                             freshMirrors.RankMirrorsByPingAsync
                         )
@@ -105,7 +105,7 @@ namespace MultiCache.Network
                     // then we sort by download speed, but only a subset of the results
                     // since it can be slow
                     await ConsoleUtils
-                        .ProgressAsync(
+                        .RatioProgressAsync(
                             "Ranking mirrors by download speed",
                             (progress, ct) =>
                                 freshMirrors.RankMirrorsByDownloadSpeedAsync(
