@@ -169,6 +169,7 @@ namespace MultiCache.PackageManager.Pacman
                 // the package has not been downloaded by a client in a while so we get rid of all stored versions
                 Put($"Package {remotePackageInfo.Name} is stale, deleting...", LogLevel.Info);
                 newPackageResource.PurgeAllVersions();
+                return;
             }
 
             var latestLocalVersion = localVersions.LastOrDefault();
@@ -346,8 +347,7 @@ namespace MultiCache.PackageManager.Pacman
                     catch (WebException wEx)
                         when (wEx.Response is HttpWebResponse hRes
                             && hRes.StatusCode == HttpStatusCode.NotFound
-                        )
-                    { }
+                        ) { }
                 }
             }
         }

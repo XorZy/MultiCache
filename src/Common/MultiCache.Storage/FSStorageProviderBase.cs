@@ -18,7 +18,11 @@ namespace MultiCache.Storage
 
         public override void DeletePackageVersion(Package package)
         {
-            new DirectoryInfo(Path.Combine(GetPackageVersionPath(package))).Delete(true);
+            var directoryInfo = new DirectoryInfo(Path.Combine(GetPackageVersionPath(package)));
+            if (directoryInfo.Exists)
+            {
+                directoryInfo.Delete(true);
+            }
         }
 
         public override IResourceHandle GetFullHandle(CacheableResource resource) =>
@@ -55,7 +59,11 @@ namespace MultiCache.Storage
 
         public override void PurgeAllPackageVersions(Package package)
         {
-            new DirectoryInfo(Path.Combine(GetPackagePath(package))).Delete(true);
+            var directoryInfo = new DirectoryInfo(Path.Combine(GetPackagePath(package)));
+            if (directoryInfo.Exists)
+            {
+                directoryInfo.Delete(true);
+            }
         }
 
         public override void RegisterPackage(Package package)
